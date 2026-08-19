@@ -81,13 +81,13 @@ function renderDashboard(stats: DashboardStats): string {
     }),
 
     renderProjectCard({
-      slug: 'typing-language',
+      slug: 'lingotype',
       icon: '⌨',
-      name: 'Typing Language',
+      name: 'LingoType',
       subtitle: '다국어 타이핑 학습 게임 · TypeScript + React + Vite',
       description: '영/일/한/스페인어 4개 언어로 타이핑 학습. 단계별 콘텐츠, 위키, 학습 플랜. 게임화 + 진행률 추적.',
       accentClass: 'typing',
-      href: '../typing_language/dashboard/index.html',
+      href: '../lingotype/dashboard/index.html',
       stats: [
         { label: 'Languages', value: fmtNumber(t.languages), sub: 'en/jp/kr/es' },
         { label: 'Corpus', value: fmtNumber(t.corpus), sub: 'words/phrases' },
@@ -95,9 +95,9 @@ function renderDashboard(stats: DashboardStats): string {
         { label: 'Coverage', value: fmtPercent(t.coverage), sub: '% avg' },
       ],
       subDashboards: [
-        { label: '📊 Overview', href: '../typing_language/dashboard/index.html' },
-        { label: '📚 Languages', href: '../typing_language/wiki/languages/' },
-        { label: '🎯 Stages', href: '../typing_language/ROADMAP.md' },
+        { label: '📊 Overview', href: '../lingotype/dashboard/index.html' },
+        { label: '📚 Languages', href: '../lingotype/wiki/languages/' },
+        { label: '🎯 Stages', href: '../lingotype/ROADMAP.md' },
       ],
     }),
 

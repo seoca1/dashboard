@@ -1,7 +1,7 @@
 /**
  * <stat-grid> — combined overview section
  *
- * Shows 5 stats: 2 from Wet Run, 2 from Typing Language, 1 meta (last sync).
+ * Shows 5 stats: 2 from Wet Run, 2 from LingoType, 1 meta (last sync).
  * Replaces hardcoded stats with live data from dashboard-stats.json.
  */
 
@@ -18,7 +18,7 @@ export function renderStatGrid(props: StatGridProps): string {
   const items = [
     { label: 'Wet Run Tests', value: props.wetRunTests, sub: 'passing', cls: 'roguelike' },
     { label: 'Wet Run Story Lines', value: props.wetRunStoryLines, sub: 'dialogues', cls: 'roguelike' },
-    { label: 'Typing Languages', value: props.typingLanguages, sub: 'supported', cls: 'typing' },
+    { label: 'LingoTypes', value: props.typingLanguages, sub: 'supported', cls: 'typing' },
     { label: 'Typing Corpus', value: props.typingCorpus, sub: 'words/phrases', cls: 'typing' },
     { label: 'Last sync', value: props.lastSync, sub: props.lastSyncSub, cls: '', small: true },
   ];

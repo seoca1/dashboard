@@ -13,7 +13,7 @@ export function renderHero(generatedAt: string | null): string {
       <h1>
         <span class="accent-r">🌆 Wet Run</span>
         <span class="separator">·</span>
-        <span class="accent-t">⌨ Typing Language</span>
+        <span class="accent-t">⌨ LingoType</span>
       </h1>
       <div class="tag">Projects Hub — Game/ Dashboard · 깁슨 스프롤 + 다국어 타이핑</div>
       <pre class="ascii" aria-hidden="true">

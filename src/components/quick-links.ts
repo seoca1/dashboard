@@ -23,11 +23,11 @@ export function renderQuickLinks(): string {
   ];
 
   const typingLinks: QuickLink[] = [
-    { label: '⌨ Typing Dashboard', href: '../typing_language/dashboard/index.html' },
-    { label: '📊 Data Overview', href: '../typing_language/dashboard/data/overview.json' },
-    { label: '📚 Languages', href: '../typing_language/wiki/languages/' },
-    { label: '🗺 ROADMAP', href: '../typing_language/ROADMAP.md' },
-    { label: '🤖 Typing AGENTS', href: '../typing_language/AGENTS.md' },
+    { label: '⌨ Typing Dashboard', href: '../lingotype/dashboard/index.html' },
+    { label: '📊 Data Overview', href: '../lingotype/dashboard/data/overview.json' },
+    { label: '📚 Languages', href: '../lingotype/wiki/languages/' },
+    { label: '🗺 ROADMAP', href: '../lingotype/ROADMAP.md' },
+    { label: '🤖 Typing AGENTS', href: '../lingotype/AGENTS.md' },
   ];
 
   const fictionLinks: QuickLink[] = [
@@ -45,7 +45,7 @@ export function renderQuickLinks(): string {
       <h2>🔗 Wet Run Quick Links</h2>
       <div class="links-row">${renderRow(wetRunLinks)}</div>
 
-      <h2>🔗 Typing Language Quick Links</h2>
+      <h2>🔗 LingoType Quick Links</h2>
       <div class="links-row">${renderRow(typingLinks)}</div>
 
       <h2>🔗 Cross-Project References</h2>

@@ -1,6 +1,6 @@
 # Game/dashboard — Unified Projects Hub
 
-> Single-page dashboard for the `Game/` workspace — links to **Wet Run** and **Typing Language** dashboards with live stats aggregated from both projects + Fiction wiki.
+> Single-page dashboard for the `Game/` workspace — links to **Wet Run** and **LingoType** dashboards with live stats aggregated from both projects + Fiction wiki.
 
 ## What it is
 
@@ -43,7 +43,7 @@ The aggregator (`scripts/aggregate-stats.mjs`) reads:
 | | `Game/wet_run/design/story/prologue_data.json` + `event_dialogues.json` + `prototype/data/scenes/` | storyLines |
 | | `Game/wet_run/design/story/event_dialogues.json` | npcs |
 | | `Game/wet_run/dashboard/data/missions/missions.json` | missions |
-| Typing | `Game/typing_language/dashboard/data/overview.json` | languages, corpus, stages, coverage |
+| Typing | `Game/lingotype/dashboard/data/overview.json` | languages, corpus, stages, coverage |
 | Fiction | `Fiction/decisions/README.md` | totalAdrs, acceptedAdrs, supersededAdrs, lastSync |
 | | `Fiction/wiki/**/*.md` (excl. index, log) | pages |
 
@@ -120,7 +120,7 @@ URL (when deployed to seoca1.github.io root): `https://seoca1.github.io/Projects
 - ✅ CJK script separation (per workspace `AGENTS.md §7`)
 - ✅ Fiction wiki untouched (per `AGENTS.md §3` + `Game/wet_run/AGENTS.md §4.1`)
 - ✅ wet_run world reference via Fiction wiki (Primary source)
-- ✅ Linked projects: Wet Run + Typing Language + Fiction
+- ✅ Linked projects: Wet Run + LingoType + Fiction
 - ✅ Lint clean: TS strict 0 errors, build succeeds
 
 ## License

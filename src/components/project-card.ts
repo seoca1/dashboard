@@ -6,7 +6,7 @@
  */
 
 export interface ProjectCardProps {
-  slug: 'wet-run' | 'typing-language';
+  slug: 'wet-run' | 'lingotype';
   icon: string;
   name: string;
   subtitle: string;
