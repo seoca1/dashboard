@@ -1,0 +1,27 @@
+{
+  "generatedAt": "2026-08-19T09:31:42.235Z",
+  "wetRun": {
+    "tests": 5088,
+    "stages": 14,
+    "storyLines": 387,
+    "npcs": 5,
+    "missions": 47
+  },
+  "typingLanguage": {
+    "languages": 4,
+    "corpus": 577,
+    "stages": 140,
+    "coverage": 41.7
+  },
+  "fiction": {
+    "pages": 476,
+    "totalAdrs": 19,
+    "acceptedAdrs": 17,
+    "supersededAdrs": 2,
+    "lastSync": "2026-08-16"
+  },
+  "meta": {
+    "version": "2.0.0",
+    "schemaVersion": 1
+  }
+}
