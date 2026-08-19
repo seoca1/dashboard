@@ -1,0 +1,61 @@
+/* Cyberpunk theme — colors preserved from old prototype + light theme variant */
+
+/* Default: dark theme (unchanged from old prototype) */
+:root,
+:root[data-theme="dark"] {
+  --bg-primary: #06090f;
+  --bg-secondary: #0d1420;
+  --bg-tertiary: #06090f;
+  --border: #1a2530;
+  --text-primary: #c5d4e3;
+  --text-secondary: #8a9aa8;
+  --text-muted: #6a7888;
+  --text-dim: #4a5868;
+
+  --accent-roguelike: #66ffcc;
+  --accent-typing: #00d9ff;
+  --accent-warning: #ffaa55;
+  --accent-danger: #ec4899;
+
+  --glow-roguelike: #66ffcc44;
+  --glow-typing: #00d9ff44;
+  --glow-warning: #ffaa5544;
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+}
+
+/* Light theme override */
+:root[data-theme="light"] {
+  --bg-primary: #f5f7fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f0f3f7;
+  --border: #d4dde5;
+  --text-primary: #1a2530;
+  --text-secondary: #4a5868;
+  --text-muted: #6a7888;
+  --text-dim: #a0acb8;
+
+  --accent-roguelike: #00aa88;
+  --accent-typing: #0080cc;
+  --accent-warning: #cc7700;
+  --accent-danger: #cc3366;
+
+  --glow-roguelike: #00aa8822;
+  --glow-typing: #0080cc22;
+  --glow-warning: #cc770022;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
