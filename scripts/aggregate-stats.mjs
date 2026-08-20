@@ -8,7 +8,7 @@
  *   - Game/wet_run/design/story/event_dialogues.json
  *   - Game/wet_run/dashboard/data/missions/missions.json
  *   - Game/wet_run/prototype/tests/test_*.py (counts test fns)
- *   - Game/typing_language/dashboard/data/overview.json
+ *   - Game/lingotype/dashboard/data/overview.json
  *   - Fiction/decisions/README.md
  *   - Fiction/wiki/*.md (page count)
  *
@@ -251,7 +251,7 @@ function aggregateWetRun() {
 }
 
 function aggregateTyping() {
-  const overview = readJson(join(ROOT, 'Game/typing_language/dashboard/data/overview.json'));
+  const overview = readJson(join(ROOT, 'Game/lingotype/dashboard/data/overview.json'));
   if (!overview) {
     return { languages: null, corpus: null, stages: null, coverage: null };
   }
