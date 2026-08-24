@@ -20,12 +20,25 @@ export interface TypingLanguageStats {
   coverage: number | null;
 }
 
+export interface VerificationFrameworkStats {
+  modes_total: number | null;
+  curations_total: number | null;
+  dimensions: number | null;
+  amendments_total: number | null;
+  amendments_project_total: number | null;
+  spraw_coverage_pct: number | null;
+  bridge_coverage_pct: number | null;
+  wiki_pages_created: number | null;
+  tools_total: number | null;
+}
+
 export interface FictionStats {
   pages: number | null;
   totalAdrs: number | null;
   acceptedAdrs: number | null;
   supersededAdrs: number | null;
   lastSync: string | null;
+  verification_framework: VerificationFrameworkStats;
 }
 
 export interface DashboardMeta {
