@@ -118,6 +118,17 @@ function renderDashboard(stats: DashboardStats): string {
       acceptedAdrs: fmtNumber(f.acceptedAdrs),
       supersededAdrs: fmtNumber(f.supersededAdrs),
       lastSync: fmtDate(f.lastSync),
+      verificationFramework: {
+        modes_total: fmtNumber(f.verification_framework.modes_total),
+        curations_total: fmtNumber(f.verification_framework.curations_total),
+        dimensions: fmtNumber(f.verification_framework.dimensions),
+        amendments_total: fmtNumber(f.verification_framework.amendments_total),
+        amendments_project_total: fmtNumber(f.verification_framework.amendments_project_total),
+        spraw_coverage_pct: fmtNumber(f.verification_framework.spraw_coverage_pct),
+        bridge_coverage_pct: fmtNumber(f.verification_framework.bridge_coverage_pct),
+        wiki_pages_created: fmtNumber(f.verification_framework.wiki_pages_created),
+        tools_total: fmtNumber(f.verification_framework.tools_total),
+      },
     }),
 
     renderQuickLinks(),
