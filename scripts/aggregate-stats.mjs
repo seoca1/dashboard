@@ -275,15 +275,91 @@ function aggregateTyping() {
 function aggregateFiction() {
   const readmePath = join(ROOT, 'Fiction/decisions/README.md');
   const wikiDir = join(ROOT, 'Fiction/wiki');
+  const toolsDir = join(ROOT, 'Fiction/tools');
   const { totalAdrs, acceptedAdrs, supersededAdrs, lastSync } = parseFictionReadme(readmePath);
   const pages = countFictionPages(wikiDir);
+  const verificationFramework = aggregateFictionVerification(toolsDir);
   return {
     pages,
     totalAdrs,
     acceptedAdrs,
     supersededAdrs,
     lastSync,
+    verification_framework: verificationFramework,
   };
+}
+
+function aggregateFictionVerification(toolsDir) {
+  if (!existsSync(toolsDir)) return null;
+  let toolsTotal = 0;
+  try {
+    const files = readdirSync(toolsDir);
+    toolsTotal = files.filter((f) => f.endsWith('.py')).length;
+  } catch (e) {
+    toolsTotal = null;
+  }
+
+  const sprawCoverage = parseCoverageFromWikiValidation(join(ROOT, 'Fiction/tools/svd_wiki_validation.json'));
+  const bridgeCoverage = parseBridgeCoverage(join(ROOT, 'Fiction/tools/svd_wiki_validation.json'));
+  const vfAmendments = countVerificationFrameworkAmendments();
+
+  return {
+    modes_total: 23,
+    curations_total: 4,
+    dimensions: 13,
+    amendments_total: vfAmendments,
+    amendments_project_total: totalAdrsFromReadme(),
+    spraw_coverage_pct: sprawCoverage,
+    bridge_coverage_pct: bridgeCoverage,
+    wiki_pages_created: 8,
+    tools_total: toolsTotal,
+  };
+}
+
+function countVerificationFrameworkAmendments() {
+  try {
+    const readmePath = join(ROOT, 'Fiction/decisions/README.md');
+    if (!existsSync(readmePath)) return null;
+    const content = readFileSync(readmePath, 'utf-8');
+    const vfAdrs = content.match(/\|\s*\[00(2[4-9]|3[0-9]|4[0-7])\]/g);
+    return vfAdrs ? vfAdrs.length : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function totalAdrsFromReadme() {
+  try {
+    const readmePath = join(ROOT, 'Fiction/decisions/README.md');
+    if (!existsSync(readmePath)) return null;
+    const content = readFileSync(readmePath, 'utf-8');
+    const m = content.match(/총 ADR 수\*\*:\s*(\d+)\s*\((\d+)\s*Accepted/i);
+    return m ? parseInt(m[1], 10) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function parseCoverageFromWikiValidation(path) {
+  try {
+    if (!existsSync(path)) return null;
+    const data = JSON.parse(readFileSync(path, 'utf-8'));
+    const sprawl = data?.negative_validation_sprawl?.metrics?.character_page_coverage_pct;
+    return sprawl ?? null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function parseBridgeCoverage(path) {
+  try {
+    if (!existsSync(path)) return null;
+    const data = JSON.parse(readFileSync(path, 'utf-8'));
+    const bridge = data?.positive_validation_bridge?.metrics?.character_page_coverage_pct;
+    return bridge ?? null;
+  } catch (e) {
+    return null;
+  }
 }
 
 /* ---------- main ---------- */

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-20T06:43:09.089Z",
+  "generatedAt": "2026-08-24T11:11:28.532Z",
   "wetRun": {
-    "tests": 5088,
+    "tests": 5102,
     "stages": 14,
     "storyLines": 387,
     "npcs": 5,
@@ -14,11 +14,22 @@
     "coverage": 207
   },
   "fiction": {
-    "pages": 476,
-    "totalAdrs": 22,
-    "acceptedAdrs": 20,
+    "pages": 518,
+    "totalAdrs": 49,
+    "acceptedAdrs": 47,
     "supersededAdrs": 2,
-    "lastSync": "2026-08-20"
+    "lastSync": "2026-08-24",
+    "verification_framework": {
+      "modes_total": 23,
+      "curations_total": 4,
+      "dimensions": 13,
+      "amendments_total": 24,
+      "amendments_project_total": 49,
+      "spraw_coverage_pct": 76,
+      "bridge_coverage_pct": 40,
+      "wiki_pages_created": 8,
+      "tools_total": 48
+    }
   },
   "meta": {
     "version": "2.0.0",
