@@ -1,13 +1,13 @@
 /**
  * Data loader — fetches dashboard-stats.json with validation.
  *
- * Path is relative to root in both dev (/) and prod (Game/dashboard/dist/).
- * Vite serves public/ at root, so /data/dashboard-stats.json works in both.
+ * Uses relative path so it works both in Vite dev server (/data/...)
+ * and on GitHub Pages (/dashboard/data/...).
  */
 
 import type { DashboardStats } from './types';
 
-const DATA_URL = '/data/dashboard-stats.json';
+const DATA_URL = 'data/dashboard-stats.json';
 
 /* ---------- runtime validation ---------- */
 
