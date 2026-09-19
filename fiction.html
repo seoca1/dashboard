@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fiction Wiki — Projects Hub</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:w400;500;700&family=Noto+Sans+KR:w400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border: #30363d;
+      --text-primary: #e6edf3;
+      --text-secondary: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --green: #3fb950;
+      --yellow: #d29922;
+      --purple: #bc8cff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans KR', 'JetBrains Mono', monospace;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Aside */
+    aside {
+      width: 320px;
+      min-width: 320px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .aside-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .aside-header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .aside-header .subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .stats-bar .stat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stats-bar .stat-value {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .filter-bar {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-bar select {
+      width: 100%;
+      padding: 6px 10px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .filter-bar select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .novel-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .novel-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .novel-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .novel-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .category-label {
+      padding: 8px 20px 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+
+    .novel-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .novel-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .novel-item.active {
+      background: var(--bg-tertiary);
+      border-left-color: var(--accent);
+    }
+
+    .novel-item .title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .novel-item .title .ko-badge {
+      font-size: 9px;
+      background: var(--green);
+      color: #000;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .novel-item .meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Main content */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 48px;
+      max-width: 800px;
+    }
+
+    main::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    main::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    main::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .content-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    .content-placeholder .icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .content-placeholder p {
+      font-size: 14px;
+    }
+
+    #content {
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    #content h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    #content h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 32px;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    #content h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    #content p {
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+
+    #content ul, #content ol {
+      margin-bottom: 12px;
+      padding-left: 24px;
+    }
+
+    #content li {
+      margin-bottom: 4px;
+    }
+
+    #content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    #content a:hover {
+      text-decoration: underline;
+    }
+
+    #content code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    #content blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 16px;
+      margin: 16px 0;
+      color: var(--text-secondary);
+    }
+
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+
+    #content th, #content td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    #content th {
+      background: var(--bg-tertiary);
+      font-weight: 700;
+    }
+
+    .lang-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .lang-tab {
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+
+    .lang-tab:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .lang-tab.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-secondary);
+    }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .back-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Grade badges for derivative stories */
+    .grade-badge {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .grade-badge.grade-a { background: #22c55e; }
+    .grade-badge.grade-b { background: #3b82f6; }
+    .grade-badge.grade-c { background: #f59e0b; }
+    .grade-badge.grade-d { background: #ef4444; }
+
+    .grade-legend {
+      display: flex;
+      gap: 16px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      flex-wrap: wrap;
+    }
+
+    .grade-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .grade-legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div class="aside-header">
+      <h1>📚 Fiction Wiki</h1>
+      <div class="subtitle">William Gibson works — RAW → WIKI → SCHEMA</div>
+    </div>
+    <div class="stats-bar" id="stats-bar"></div>
+    <div class="grade-legend" id="grade-legend" style="display:none">
+      <div class="grade-legend-item"><div class="grade-legend-color" style="background:#22c55e"></div>A</div>
+      <div class="grade-legend-item"><div class="grade-legend-color" style="background:#3b82f6"></div>B</div>
+      <div class="grade-legend-item"><div class="grade-legend-color" style="background:#f59e0b"></div>C</div>
+      <div class="grade-legend-item"><div class="grade-legend-color" style="background:#ef4444"></div>D</div>
+    </div>
+    <div class="filter-bar">
+      <select id="filter">
+        <option value="all">All Works</option>
+        <option value="novel">Novels</option>
+        <option value="short-story">Short Stories</option>
+        <option value="essay">Essays</option>
+        <option value="trilogy">Trilogies</option>
+        <option value="derivative">파생소설 (569)</option>
+        <option value="ko">한국어 번역 있음</option>
+      </select>
+    </div>
+    <div class="novel-list" id="novel-list"></div>
+  </aside>
+  <main>
+    <div id="content">
+      <div class="content-placeholder">
+        <div class="icon">📖</div>
+        <p>왼쪽에서 작품을 선택하세요</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let data = null;
+    let currentId = null;
+    let currentLang = 'en';
+
+    const categoryLabels = {
+      'novel': '장편소설',
+      'short-story': '단편소설',
+      'essay': '에세이',
+      'trilogy': '3부작',
+      'derivative': '파생소설',
+      'other': '기타'
+    };
+
+    const categoryOrder = ['novel', 'short-story', 'essay', 'trilogy', 'derivative', 'other'];
+
+    async function loadData() {
+      try {
+        const res = await fetch('data/fiction-data.json');
+        data = await res.json();
+        renderStats();
+        renderList();
+      } catch (e) {
+        console.error('Failed to load fiction data:', e);
+      }
+    }
+
+    function renderStats() {
+      const s = data.stats;
+      document.getElementById('stats-bar').innerHTML = `
+        <div class="stat"><span class="stat-value">${s.total}</span> 총</div>
+        <div class="stat"><span class="stat-value">${s.novels}</span> 장편</div>
+        <div class="stat"><span class="stat-value">${s.shortStories}</span> 단편</div>
+        <div class="stat"><span class="stat-value">${s.derivative || 0}</span> 파생</div>
+        <div class="stat"><span class="stat-value">${s.withKo}</span> .ko</div>
+      `;
+    }
+
+    function renderList(filter = 'all') {
+      const list = document.getElementById('novel-list');
+      const gradeLegend = document.getElementById('grade-legend');
+      let novels = data.novels;
+
+      // Show grade legend only for derivative filter
+      gradeLegend.style.display = filter === 'derivative' ? 'flex' : 'none';
+
+      if (filter === 'ko') {
+        novels = novels.filter(n => n.hasKo);
+      } else if (filter !== 'all') {
+        novels = novels.filter(n => n.category === filter);
+      }
+
+      // Group by category
+      const grouped = {};
+      novels.forEach(n => {
+        if (!grouped[n.category]) grouped[n.category] = [];
+        grouped[n.category].push(n);
+      });
+
+      let html = '';
+      categoryOrder.forEach(cat => {
+        if (!grouped[cat] || grouped[cat].length === 0) return;
+        html += `<div class="category-label">${categoryLabels[cat] || cat}</div>`;
+        grouped[cat].forEach(n => {
+          const gradeBadge = n.grade ? `<span class="grade-badge grade-${n.grade.toLowerCase()}">${n.grade}</span>` : '';
+          const scoreText = n.score !== undefined ? ` · ${n.score}점` : '';
+          const wordsText = n.wordCount ? ` · ${n.wordCount.toLocaleString()}w` : '';
+          html += `
+            <div class="novel-item ${currentId === n.id ? 'active' : ''}"
+                 data-id="${n.id}" onclick="selectNovel('${n.id}')">
+              <div class="title">
+                ${n.title}
+                ${n.hasKo ? '<span class="ko-badge">KO</span>' : ''}
+                ${gradeBadge}
+              </div>
+              <div class="meta">${n.year || ''}${scoreText}${wordsText}</div>
+            </div>
+          `;
+        });
+      });
+
+      list.innerHTML = html || '<div style="padding:20px;color:var(--text-secondary)">검색 결과 없음</div>';
+    }
+
+    async function selectNovel(id) {
+      currentId = id;
+      currentLang = 'en';
+      renderList(document.getElementById('filter').value);
+
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="loading">로딩 중...</div>';
+
+      try {
+        const novel = data.novels.find(n => n.id === id);
+        if (!novel) throw new Error('Novel not found');
+
+        const enText = novel.content || '';
+        const koText = novel.contentKo || null;
+
+        // Remove frontmatter
+        const cleanEn = enText.replace(/^---\n[\s\S]*?\n---\n/, '');
+
+        let html = marked.parse(cleanEn);
+
+        // Add language tabs if KO exists
+        if (koText) {
+          const tabs = `
+            <div class="lang-tabs">
+              <div class="lang-tab active" onclick="switchLang('en')">EN</div>
+              <div class="lang-tab" onclick="switchLang('ko')">한국어</div>
+            </div>
+          `;
+          html = tabs + `<div id="content-en">${html}</div><div id="content-ko" style="display:none">${marked.parse(koText.replace(/^---\n[\s\S]*?\n---\n/, ''))}</div>`;
+        }
+
+        // Add grade info for derivative stories
+        let gradeInfo = '';
+        if (novel && novel.category === 'derivative') {
+          gradeInfo = `
+            <div style="background:var(--bg-tertiary);padding:12px 16px;border-radius:6px;margin-bottom:20px;font-size:13px;">
+              <span class="grade-badge grade-${novel.grade.toLowerCase()}" style="font-size:12px;padding:3px 8px;">${novel.grade}등급</span>
+              <span style="margin-left:12px;color:var(--text-secondary)">${novel.score}점 · ${novel.wordCount.toLocaleString()}단어</span>
+            </div>
+          `;
+        }
+
+        content.innerHTML = `<a href="index.html" class="back-link">← Dashboard</a>` + gradeInfo + html;
+      } catch (e) {
+        content.innerHTML = `<div class="content-placeholder"><div class="icon">⚠️</div><p>파일을 불러올 수 없습니다<br><small>${id}</small></p></div>`;
+      }
+    }
+
+    function switchLang(lang) {
+      currentLang = lang;
+      document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.lang-tab:nth-child(${lang === 'en' ? 1 : 2})`).classList.add('active');
+      document.getElementById('content-en').style.display = lang === 'en' ? '' : 'none';
+      document.getElementById('content-ko').style.display = lang === 'ko' ? '' : 'none';
+    }
+
+    document.getElementById('filter').addEventListener('change', e => {
+      renderList(e.target.value);
+    });
+
+    loadData();
+  </script>
+</body>
+</html>
