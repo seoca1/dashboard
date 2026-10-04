@@ -8,3 +8,6 @@ dist/
 # Generated data is COMMITTED to repo (not gitignored)
 # so GitHub Pages can serve it without runtime fetch.
 # See: .omo/plans/dashboard-upgrade.md §5 "Error handling"
+# Python caches (scripts/*.py)
+__pycache__/
+*.pyc
