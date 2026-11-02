@@ -3,11 +3,12 @@
  * Aggregate stats from source JSONs across all projects.
  *
  * Reads:
- *   - Game/wet_run/design/systems/stage_structure.json
- *   - Game/wet_run/design/story/prologue_data.json
- *   - Game/wet_run/design/story/event_dialogues.json
- *   - Game/wet_run/dashboard/data/missions/missions.json
- *   - Game/wet_run/prototype/tests/test_*.py (counts test fns)
+ *   - Game/wet_run/docs/design/systems/stage_structure.json
+ *   - Game/wet_run/docs/design/story/prologue_data.json
+ *   - Game/wet_run/docs/design/story/event_dialogues.json
+ *   - Game/wet_run/docs/dashboard/data/missions/missions.json
+ *   - Game/wet_run/web/tests/*.test.ts (counts Vitest declarations)
+ *   - Game/wet_run/web/src/data/scenes.json (counts dialogue lines)
  *   - Game/lingotype/dashboard/data/overview.json
  *   - Fiction/decisions/README.md
  *   - Fiction/wiki/*.md (page count)
@@ -86,65 +87,148 @@ function sumArray(obj, ...path) {
   return total;
 }
 
-function countTestFunctions(prototypeDir) {
-  const testsDir = join(prototypeDir, 'tests');
+/* ---------- Vitest source scanning ---------- */
+
+/** Body of a balanced bracket pair starting at `start` (must point at the opener). */
+function extractBalanced(src, start) {
+  const open = src[start];
+  const close = open === '[' ? ']' : open === '{' ? '}' : ')';
+  let depth = 0;
+  let i = start;
+  let str = null;
+  while (i < src.length) {
+    const c = src[i];
+    if (str) {
+      if (c === '\\') { i += 2; continue; }
+      if (c === str) str = null;
+      i += 1;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { str = c; i += 1; continue; }
+    if (c === open) depth += 1;
+    else if (c === close) {
+      depth -= 1;
+      if (depth === 0) return { body: src.slice(start + 1, i), end: i + 1 };
+    }
+    i += 1;
+  }
+  return null;
+}
+
+/** Split an array-literal body on top-level commas. */
+function splitTopLevel(body) {
+  const parts = [];
+  let depth = 0;
+  let cur = '';
+  let str = null;
+  for (let i = 0; i < body.length; i += 1) {
+    const c = body[i];
+    if (str) {
+      cur += c;
+      if (c === '\\') { cur += body[i + 1] ?? ''; i += 1; continue; }
+      if (c === str) str = null;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { str = c; cur += c; continue; }
+    if (c === '[' || c === '{' || c === '(') depth += 1;
+    else if (c === ']' || c === '}' || c === ')') depth -= 1;
+    if (c === ',' && depth === 0) { parts.push(cur); cur = ''; continue; }
+    cur += c;
+  }
+  parts.push(cur);
+  return parts.map((p) => p.trim()).filter((p) => p.length > 0);
+}
+
+/** Map of `const NAME = [...]` array lengths declared in a source file. */
+function resolveConstArrays(src) {
+  const out = new Map();
+  const rx = /(?:const|let)\s+([A-Za-z_$][\w$]*)\s*(?::[^=]*?)?=\s*\[/gs;
+  let m;
+  while ((m = rx.exec(src)) !== null) {
+    const got = extractBalanced(src, m.index + m[0].length - 1);
+    if (got) out.set(m[1], splitTopLevel(got.body).length);
+  }
+  return out;
+}
+
+/** Case count for an `.each(<arg>)` argument: literal array, same-file const, else 1. */
+function eachCaseCount(src, pos, consts) {
+  if (src[pos] === '[') {
+    const got = extractBalanced(src, pos);
+    return got ? splitTopLevel(got.body).length : 1;
+  }
+  const m = /^[A-Za-z_$][\w$]*/.exec(src.slice(pos));
+  if (m && consts.has(m[0])) return consts.get(m[0]);
+  return 1;
+}
+
+/**
+ * Count Vitest test declarations under `<webDir>/tests`.
+ *
+ * Static source scan — counts declaration sites, not vitest's runtime
+ * expansion. `.each(<literal array>)` and `.each(<same-file const array>)`
+ * expand to their case count; every other `it()` / `test()` call counts as
+ * one. Measured against `npm test` this lands within ~4% of the runtime
+ * total (the remainder is expansion inside `describe.each` blocks and
+ * constants imported from src/).
+ */
+function countTestCases(webDir) {
+  const testsDir = join(webDir, 'tests');
   if (!existsSync(testsDir)) {
     log('WARN', `Tests dir missing: ${testsDir}`);
     return null;
   }
   try {
-    // Recursive scan — tests live in tests/unit/, tests/integration/, etc.
     const files = [];
-    function walk(dir) {
+    const walk = (dir) => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) {
-          if (entry.name === '__pycache__') continue;
+          if (entry.name === 'node_modules') continue;
           walk(full);
-        } else if (entry.name.startsWith('test_') && entry.name.endsWith('.py')) {
+        } else if (entry.name.endsWith('.test.ts')) {
           files.push(full);
         }
       }
-    }
+    };
     walk(testsDir);
+
     let total = 0;
     for (const f of files) {
-      const content = readFileSync(f, 'utf-8');
-      const matches = content.match(/^\s*def test_/gm);
-      if (matches) total += matches.length;
+      const src = readFileSync(f, 'utf-8');
+      const consts = resolveConstArrays(src);
+      const eachRx = /(?:it|test)\.each\s*\(\s*/gs;
+      const plainRx = /(?<![.\w])(?:it|test)\s*\(/g;
+      let m;
+      while ((m = eachRx.exec(src)) !== null) {
+        total += eachCaseCount(src, m.index + m[0].length, consts);
+      }
+      while ((m = plainRx.exec(src)) !== null) {
+        total += 1;
+      }
     }
+    log('INFO', `Vitest declarations: ${total} (${files.length} files)`);
     return total;
   } catch (e) {
-    log('WARN', `Failed to count test functions: ${e.message}`);
+    log('WARN', `Failed to count test cases: ${e.message}`);
     return null;
   }
 }
 
-function countLinesInScenes(scenesDir) {
-  if (!existsSync(scenesDir)) return null;
+/** Count dialogue lines across web/src/data/scenes.json (single file, keyed by scene id). */
+function countLinesInScenesFile(scenesFile) {
+  if (!existsSync(scenesFile)) {
+    log('WARN', `Scenes file missing: ${scenesFile}`);
+    return null;
+  }
   try {
-    const files = [];
-    function walk(dir) {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const full = join(dir, entry.name);
-        if (entry.isDirectory()) walk(full);
-        else if (entry.name.endsWith('.json')) files.push(full);
-      }
-    }
-    walk(scenesDir);
+    const data = JSON.parse(readFileSync(scenesFile, 'utf-8'));
+    const scenes = data?.scenes;
+    if (!scenes || typeof scenes !== 'object') return null;
     let total = 0;
-    for (const f of files) {
-      try {
-        const data = JSON.parse(readFileSync(f, 'utf-8'));
-        // Various line containers: top-level "lines", "dialogue", or nested in "beats[].lines"
-        if (Array.isArray(data.lines)) total += data.lines.length;
-        else if (Array.isArray(data.dialogue)) total += data.dialogue.length;
-        else if (Array.isArray(data.beats)) {
-          for (const b of data.beats) {
-            if (Array.isArray(b?.lines)) total += b.lines.length;
-          }
-        }
-      } catch { /* skip malformed */ }
+    for (const scene of Object.values(scenes)) {
+      if (Array.isArray(scene?.dialogue)) total += scene.dialogue.length;
+      else if (Array.isArray(scene?.lines)) total += scene.lines.length;
     }
     return total;
   } catch (e) {
@@ -196,12 +280,12 @@ function countFictionPages(wikiDir) {
 /* ---------- aggregation ---------- */
 
 function aggregateWetRun() {
-  const stageStructure = readJson(join(ROOT, 'Game/wet_run/design/systems/stage_structure.json'));
-  const prologue = readJson(join(ROOT, 'Game/wet_run/design/story/prologue_data.json'));
-  const dialogues = readJson(join(ROOT, 'Game/wet_run/design/story/event_dialogues.json'));
-  const missions = readJson(join(ROOT, 'Game/wet_run/dashboard/data/missions/missions.json'));
-  const prototypeDir = join(ROOT, 'Game/wet_run/prototype');
-  const scenesDir = join(prototypeDir, 'data', 'scenes');
+  const stageStructure = readJson(join(ROOT, 'Game/wet_run/docs/design/systems/stage_structure.json'));
+  const prologue = readJson(join(ROOT, 'Game/wet_run/docs/design/story/prologue_data.json'));
+  const dialogues = readJson(join(ROOT, 'Game/wet_run/docs/design/story/event_dialogues.json'));
+  const missions = readJson(join(ROOT, 'Game/wet_run/docs/dashboard/data/missions/missions.json'));
+  const webDir = join(ROOT, 'Game/wet_run/web');
+  const scenesFile = join(webDir, 'src', 'data', 'scenes.json');
 
   // Story lines: prologue scenes + prologue endings + event dialogues + all scene JSONs
   let storyLines = 0;
@@ -234,15 +318,15 @@ function aggregateWetRun() {
       }
     }
   }
-  // Also scan all scene files in prototype/data/scenes/ (covers GN mode, character arcs)
-  const sceneLines = countLinesInScenes(scenesDir);
+  // Also scan web/src/data/scenes.json (covers GN mode, character arcs)
+  const sceneLines = countLinesInScenesFile(scenesFile);
   if (sceneLines != null) {
     storyLines += sceneLines;
     storyLinesSet = true;
   }
 
   return {
-    tests: countTestFunctions(prototypeDir),
+    tests: countTestCases(webDir),
     stages: safeCount(stageStructure, 'stages'),
     storyLines: storyLinesSet ? storyLines : null,
     npcs: safeCount(dialogues, 'npcs'),
