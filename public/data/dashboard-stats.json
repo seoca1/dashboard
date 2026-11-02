@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-02T14:20:05.933Z",
+  "generatedAt": "2026-11-02T14:55:50.395Z",
   "wetRun": {
     "tests": 3795,
     "stages": 14,
@@ -11,7 +11,7 @@
     "languages": 4,
     "corpus": 577,
     "stages": 52,
-    "coverage": 111.2
+    "coverage": 58.1
   },
   "fiction": {
     "pages": 733,
