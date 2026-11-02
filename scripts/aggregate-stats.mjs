@@ -165,12 +165,18 @@ function eachCaseCount(src, pos, consts) {
 /**
  * Count Vitest test declarations under `<webDir>/tests`.
  *
- * Static source scan — counts declaration sites, not vitest's runtime
- * expansion. `.each(<literal array>)` and `.each(<same-file const array>)`
- * expand to their case count; every other `it()` / `test()` call counts as
- * one. Measured against `npm test` this lands within ~4% of the runtime
- * total (the remainder is expansion inside `describe.each` blocks and
- * constants imported from src/).
+ * Static source scan of the declaration sites, with the runtime-expanding
+ * patterns resolved:
+ *   - `it.each(<array>)` / `test.each(<array>)` → array length
+ *     (literal array, or a const array in the same file)
+ *   - `describe.each(<array>)(...) { it(...) }` → inner declarations × array length
+ *   - `for (const x of <const array>) { it(...) }` → inner declarations × array length
+ * Every other `it()` / `test()` call counts as one.
+ *
+ * Measured against `npm test` this lands within ~0.6% of the runtime total
+ * (175 files, 3910 vs 3932). The remainder is expansion over data that is
+ * only known at runtime — `Object.entries(...).filter(...)` arguments and
+ * arrays imported from src/.
  */
 function countTestCases(webDir) {
   const testsDir = join(webDir, 'tests');
@@ -203,9 +209,14 @@ function countTestCases(webDir) {
       while ((m = eachRx.exec(src)) !== null) {
         total += eachCaseCount(src, m.index + m[0].length, consts);
       }
+      // Plain it()/test() call sites count once. Blocks that expand at
+      // runtime — `describe.each(<array>)` and `for (const x of <array>)`
+      // loops that contain test declarations — are counted once here and
+      // then multiplied by their expansion factor below.
       while ((m = plainRx.exec(src)) !== null) {
         total += 1;
       }
+      total += expansionExtra(src, consts);
     }
     log('INFO', `Vitest declarations: ${total} (${files.length} files)`);
     return total;
@@ -213,6 +224,106 @@ function countTestCases(webDir) {
     log('WARN', `Failed to count test cases: ${e.message}`);
     return null;
   }
+}
+
+/** Body of a balanced brace block starting at `start` (must point at '{'). */
+function extractBlock(src, start) {
+  let depth = 0;
+  let i = start;
+  let str = null;
+  while (i < src.length) {
+    const c = src[i];
+    if (str) {
+      if (c === '\\') { i += 2; continue; }
+      if (c === str) str = null;
+      i += 1;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { str = c; i += 1; continue; }
+    if (c === '{') depth += 1;
+    else if (c === '}') {
+      depth -= 1;
+      if (depth === 0) return { body: src.slice(start + 1, i), end: i + 1 };
+    }
+    i += 1;
+  }
+  return null;
+}
+
+/** Number of it()/test() declaration sites inside a block body. */
+function countDeclarationsIn(body) {
+  const rx = /(?<![.\w])(?:it|test)\s*\(/g;
+  let n = 0;
+  let m;
+  while ((m = rx.exec(body)) !== null) n += 1;
+  return n;
+}
+
+/**
+ * Extra test cases contributed by runtime-expanding blocks.
+ *
+ * Two patterns in the wet_run suite expand a single declaration site into
+ * several cases:
+ *   describe.each(<array>)("<name>", (...) => { it(...) })   — one case per array entry
+ *   for (const x of <array>) { it(...) }                      — one case per array entry
+ *
+ * The plain counter already counted the inner declaration sites once, so
+ * only the additional (n - 1) copies are added here. Arrays must be
+ * resolvable statically (literal, or a const in the same file).
+ */
+function expansionExtra(src, consts) {
+  let extra = 0;
+
+  // describe.each(<array>)(...) { ... }
+  const descRx = /describe\s*\.\s*each\s*\(\s*/g;
+  let m;
+  while ((m = descRx.exec(src)) !== null) {
+    const cases = eachCaseCount(src, m.index + m[0].length, consts);
+    if (cases <= 1) continue;
+    const body = blockAfterCall(src, m.index + m[0].length);
+    if (!body) continue;
+    const inner = countDeclarationsIn(body.body);
+    extra += inner * (cases - 1);
+  }
+
+  // for (const <name> of <array>) { ... it(...) ... }
+  const loopRx = /for\s*\(\s*const\s+[A-Za-z_$][\w$]*\s+of\s+([A-Za-z_$][\w$]*)\s*\)\s*\{/g;
+  while ((m = loopRx.exec(src)) !== null) {
+    const name = m[1];
+    if (!consts.has(name)) continue;
+    const cases = consts.get(name);
+    if (cases <= 1) continue;
+    const block = extractBlock(src, src.indexOf('{', m.index));
+    if (!block) continue;
+    const inner = countDeclarationsIn(block.body);
+    extra += inner * (cases - 1);
+  }
+
+  return extra;
+}
+
+/** Find the block body that follows a call's argument list. */
+function blockAfterCall(src, afterArgs) {
+  // Skip the remaining argument list of the call, then find the block.
+  let i = afterArgs;
+  let depth = 1;
+  let str = null;
+  while (i < src.length && depth > 0) {
+    const c = src[i];
+    if (str) {
+      if (c === '\\') { i += 2; continue; }
+      if (c === str) str = null;
+      i += 1;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { str = c; i += 1; continue; }
+    if (c === '(' || c === '[' || c === '{') depth += 1;
+    else if (c === ')' || c === ']' || c === '}') depth -= 1;
+    i += 1;
+  }
+  const brace = src.indexOf('{', i);
+  if (brace < 0) return null;
+  return extractBlock(src, brace);
 }
 
 /** Count dialogue lines across web/src/data/scenes.json (single file, keyed by scene id). */
